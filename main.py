@@ -4,8 +4,9 @@ import glob
 import shutil
 import json
 import magic
-import vtapi3
 from vtapi3 import VirusTotalAPIFiles, VirusTotalAPIError
+from bs4 import BeautifulSoup
+import requests
 import urllib
 import re
 
@@ -14,8 +15,19 @@ import re
 
 virustotal_apikey = "8585f51b40008950b8cc0a9776996697de63c73b51ac6688bfcdd84c03558329"
 download_path = "/home/klaus/Downloads"
-malware_list = "https://dasmalwerk.eu/"
+malware_list_URL = "https://dasmalwerk.eu/"
 vt_files = VirusTotalAPIFiles(virustotal_apikey)
+
+# result = requests.get(malware_list_URL)
+# print(result.text)
+
+
+def is_int(value):
+    try:
+        int(value)
+        return True
+    except:
+        return False
 
 
 def scan_file(file_path):
@@ -48,6 +60,8 @@ def remove_virused_file(virused):
         remove_virused_file(virused)
 
 
+# Trebuie sa definesc un criteriu dupa care se face scanarea, daca nu, scanam tot.
+
 def search_for_viruses():
     for virused in glob.glob(f'{download_path}/*'):
         if "virus" in virused or "malware" in virused:
@@ -55,7 +69,28 @@ def search_for_viruses():
                 print(str(magic.from_file(virused)))
                 scan_file(virused)
             except os.error as error:
-                pass
+                print(error)
 
 
-search_for_viruses()
+def custom_search_for_viruses():
+    absolute_path = input("Introduceti calea absoluta catre fisierul pe care doriti sa l scanati. ")
+    try:
+        scan_file(absolute_path)
+    except os.error as error:
+        print(error)
+
+
+sem = 1
+
+while sem:
+    what_to_scan = input("Doriti o scanare rapida (1) sau o scanare punctuala (2) sau sa iesiti din program (q). ")
+    if is_int(what_to_scan):
+        if int(what_to_scan) == 1:
+            search_for_viruses()
+        elif int(what_to_scan) == 2:
+            custom_search_for_viruses()
+    else:
+        if "q" in what_to_scan:
+            exit()
+        else:
+            print("Input ul nu a fost recunoscut, incercati din nou. ")
